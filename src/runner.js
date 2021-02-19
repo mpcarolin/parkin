@@ -1,12 +1,10 @@
 import { parse } from './parse'
-import { constants } from './constants'
-import { isArr, capitalize, isObj, isStr } from '@keg-hub/jsutils'
+import { isArr, capitalize, isObj, isStr, noOp } from '@keg-hub/jsutils'
 import {
   throwMissingSteps,
   throwMissingFeatureText,
   testMethodFill,
 } from './errors'
-const { STEP_TYPES } = constants
 
 /*
  * Resolves a test method from the global scope
@@ -79,9 +77,9 @@ export class Runner {
    *
    * @returns {void}
    */
-  run = data => {
+  run = (data, hooks)  => {
     const features = isStr(data)
-      ? parse(data)
+      ? parse.feature(data)
       : isObj(data)
         ? [data]
         : isArr(data)
@@ -92,6 +90,13 @@ export class Runner {
 
     features.map(feature => {
       describe(`Feature: ${feature.feature}`, () => {
+
+        // setup hooks
+        beforeAll(hooks.getRegistered('beforeAll'))
+        afterAll(hooks.getRegistered('afterAll'))
+        beforeEach(hooks.getRegistered('beforeEach'))
+        afterEach(hooks.getRegistered('afterEach'))
+
         feature.scenarios.map(scenario => runScenario(this.steps, scenario))
       })
     })

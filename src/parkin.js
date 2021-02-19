@@ -1,4 +1,5 @@
 import { Steps } from './steps'
+import { Hooks } from './hooks'
 import { parse } from './parse'
 import { Runner } from './runner'
 import { registerParamType } from './matcher'
@@ -20,6 +21,7 @@ import { isObj, capitalize } from '@keg-hub/jsutils'
  * Parkin#paramTypes#register - Register custom paramTypes for step definitions
  */
 
+
 /**
  * Main class for handling feature files in the browser
  * Use the Steps, Runner and parser to allow executing feature file tests
@@ -34,17 +36,8 @@ export class Parkin {
   constructor(world, steps) {
     this.steps = new Steps(world)
     this.runner = new Runner(this.steps)
+    this.hooks = new Hooks()
 
-    /**
-     * Runs the step definition methods matching the steps of a feature
-     * @memberof Parkin
-     * @alias instance&period;run
-     * @function
-     * @public
-     *
-     * @returns {function} - Run tests method for executing a features steps
-     */
-    this.run = this.runner.run
 
     /**
      * Access parse object containing feature and definition parse methods
@@ -99,6 +92,19 @@ export class Parkin {
       this[capitalize(type)] = (matcher, method) =>
         this.steps.register(`_${type}`, type, matcher, method)
     })
+  }
+
+  /**
+   * Runs the step definition methods matching the steps of a feature
+   * @memberof Parkin
+   * @alias instance&period;run
+   * @function
+   * @public
+   *
+   * @returns {function} - Run tests method for executing a features steps
+   */
+  run (data) {
+    this.runner.run(data, this.hooks)
   }
 
   /**
